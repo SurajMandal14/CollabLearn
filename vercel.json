@@ -1,8 +1,8 @@
 {
   "version": 2,
   "builds": [
-    { 
-      "src": "server/index.js", 
+    {
+      "src": "server/index.js",
       "use": "@vercel/node"
     },
     {
@@ -14,18 +14,17 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/index.js"
+      "dest": "/server/index.js"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "server/uploads/$1"
+      "dest": "/server/uploads/$1"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/$1"
-    },
-    {
-      "src": "/",
       "dest": "/dist/index.html"
     }
   ]
