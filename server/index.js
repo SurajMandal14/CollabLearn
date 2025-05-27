@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
+import dotenv from "dotenv";
 import User from "./models/User.js";
 import Group from "./models/Group.js";
 import Message from "./models/Message.js";
@@ -15,16 +16,27 @@ import Quiz from "./models/Quiz.js";
 import QuizResult from "./models/QuizResult.js";
 import Notification from "./models/Notification.js";
 
+// Load environment variables
+dotenv.config();
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
+    origin: "*", // Allow all origins during development
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
   },
 });
 
-app.use(cors());
+// Configure CORS for Express
+app.use(
+  cors({
+    origin: "*", // Allow all origins during development
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Configure multer for file uploads
@@ -56,15 +68,16 @@ app.use("/uploads", express.static("uploads"));
 
 // MongoDB connection
 mongoose
-  .connect("mongodb://localhost:27017/learning-platform", {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    dbName: 'collablearn' // Specify a unique database name to avoid conflicts
   })
   .then(() => {
-    console.log("Connected to MongoDB");
+    console.log("Connected to MongoDB Atlas - Database: collablearn");
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    console.error("MongoDB Atlas connection error:", err);
   });
 
 // Authentication middleware
@@ -76,7 +89,7 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: "Authentication required" });
   }
 
-  jwt.verify(token, "your_jwt_secret", (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ message: "Invalid token" });
     }
@@ -100,7 +113,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     const token = jwt.sign(
       { userId: user._id, role: user.role },
-      "your_jwt_secret",
+      process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
@@ -117,15 +130,28 @@ app.post("/api/auth/register", async (req, res) => {
 
 app.post("/api/auth/login", async (req, res) => {
   try {
+    console.log("Login attempt with:", JSON.stringify(req.body, null, 2));
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user || !(await user.comparePassword(password))) {
+    console.log("User found:", user ? "yes" : "no");
+
+    if (!user) {
+      console.log("Login failed: User not found");
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const passwordMatch = await user.comparePassword(password);
+    console.log("Password match:", passwordMatch ? "yes" : "no");
+
+    if (!passwordMatch) {
+      console.log("Login failed: Password doesn't match");
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Check if the account is disabled
     if (user.isDisabled) {
+      console.log("Login failed: Account is disabled");
       return res.status(403).json({
         message:
           "Your account has been disabled. Please contact an administrator.",
@@ -134,9 +160,11 @@ app.post("/api/auth/login", async (req, res) => {
 
     const token = jwt.sign(
       { userId: user._id, role: user.role },
-      "your_jwt_secret",
+      process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
+
+    console.log("Login successful for user:", user.username);
 
     res.json({
       token,
@@ -145,6 +173,7 @@ app.post("/api/auth/login", async (req, res) => {
       username: user.username,
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Error logging in" });
   }
 });
@@ -741,7 +770,7 @@ io.on("connection", (socket) => {
   socket.on("authenticate", async (token) => {
     try {
       // Verify token and get user info
-      const decoded = jwt.verify(token, "your_jwt_secret");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       userId = decoded.userId;
 
       // Store the mapping of userId to socketId
@@ -1076,7 +1105,48 @@ app.delete(
   }
 );
 
+// Development-only route to create a test user
+app.get("/api/create-test-user", async (req, res) => {
+  try {
+    // Check if we're in development
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({ message: "Not available in production" });
+    }
+
+    // Check if test user already exists
+    const existingUser = await User.findOne({ email: "test@example.com" });
+    if (existingUser) {
+      return res.json({
+        message: "Test user already exists",
+        email: "test@example.com",
+        password: "password123",
+      });
+    }
+
+    // Create a test user
+    const user = new User({
+      username: "testuser",
+      email: "test@example.com",
+      password: "password123", // Will be hashed by the pre-save hook
+      role: "admin",
+    });
+
+    await user.save();
+
+    console.log("Created test user:", user);
+
+    res.json({
+      message: "Test user created successfully",
+      email: "test@example.com",
+      password: "password123",
+    });
+  } catch (error) {
+    console.error("Error creating test user:", error);
+    res.status(500).json({ message: "Error creating test user" });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
