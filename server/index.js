@@ -71,7 +71,7 @@ mongoose
   .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    dbName: 'collablearn' // Specify a unique database name to avoid conflicts
+    dbName: "collablearn", // Specify a unique database name to avoid conflicts
   })
   .then(() => {
     console.log("Connected to MongoDB Atlas - Database: collablearn");
