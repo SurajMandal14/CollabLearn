@@ -1,17 +1,11 @@
-// API base URL - Always use relative URLs on deployed sites
-const isProduction =
-  window.location.hostname !== "localhost" &&
-  window.location.hostname !== "127.0.0.1";
+// HARDCODED CONFIGURATION - SOLVING MIXED CONTENT ERROR
+// Direct configuration to fix deployment issues - May 27, 2025
 
-// API base URL
-const API_URL = isProduction
-  ? "/api"
-  : `http://${window.location.hostname}:5000/api`;
+// API base URL - use absolute path to fix mixed content errors
+const API_URL = "/api"; // Always use relative path
 
-// Socket.io URL - Updated to support connections from different devices
-const SOCKET_URL = isProduction
-  ? window.location.origin
-  : `http://${window.location.hostname}:5000`;
+// Socket.io URL - Always use the current origin
+const SOCKET_URL = window.location.origin;
 
 // JWT token secret (for reference only, actual secret is on server)
 const JWT_SECRET = "JWT_SECRET_FROM_ENV_VAR"; // Note: This is just a placeholder, real secret is in server .env
