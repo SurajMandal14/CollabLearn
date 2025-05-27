@@ -29,33 +29,19 @@ const io = new Server(httpServer, {
   },
 });
 
-// Configure CORS for Express
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow any origin in development
-      // In production, allow only our Vercel deployment URL
-      const allowedOrigins = [
-        "https://collab-learn-rouge.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:5000",
-        undefined, // Allow requests with no origin (like mobile apps or curl requests)
-      ];
+// Enable CORS for all routes - simplified version
+app.use(cors());
 
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        console.log(`Origin ${origin} not allowed by CORS`);
-        callback(null, true); // Still allow all origins for now to debug
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-  })
-);
-app.use(express.json());
+// Handle preflight requests
+app.options("*", cors());
 
 // Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+app.use(express.json());
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
