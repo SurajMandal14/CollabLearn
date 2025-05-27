@@ -2,7 +2,7 @@
 // Direct configuration to fix deployment issues - May 27, 2025
 
 // API base URL - use absolute path to fix mixed content errors
-const API_URL = ""; // Always use relative path
+const API_URL = "/api"; // Ensure this is used for Vercel rewrites
 
 // Socket.io URL - Always use the current origin
 const SOCKET_URL = window.location.origin;
