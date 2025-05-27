@@ -72,6 +72,9 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     dbName: "collablearn", // Specify a unique database name to avoid conflicts
+    ssl: true,
+    tls: true,
+    tlsAllowInvalidCertificates: false,
   })
   .then(() => {
     console.log("Connected to MongoDB Atlas - Database: collablearn");

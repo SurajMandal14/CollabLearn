@@ -23,7 +23,7 @@ CollabLearn is a comprehensive web-based collaborative learning platform designe
 - **Justification**: Tailwind eliminates the need to write custom CSS for most components while providing fine-grained control over styling. Its utility-first approach speeds up development without compromising design flexibility.
 - **Key Implementation**: Used for responsive layouts, color schemes, animations, and component styling
 
-### Backend Architecture
+### Backend Architecture     
 
 **Node.js with Express.js**
 

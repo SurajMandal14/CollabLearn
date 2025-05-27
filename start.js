@@ -27,7 +27,7 @@ server.stdout.on("data", (data) => {
     data.includes("Connected to MongoDB")
   ) {
     console.log("Starting client on port 3000...");
-    const client = exec("npm run dev");
+    const client = exec("npm run dev -- --host 0.0.0.0");
 
     client.stdout.on("data", (data) => {
       console.log(`CLIENT: ${data}`);
