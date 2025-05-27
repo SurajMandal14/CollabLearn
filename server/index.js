@@ -1150,6 +1150,8 @@ app.get("/api/create-test-user", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, "0.0.0.0", () => {
+const HOST = process.env.HOST || "0.0.0.0";
+
+httpServer.listen(PORT, HOST, () => {
   console.log(`Server running on port ${PORT}`);
 });

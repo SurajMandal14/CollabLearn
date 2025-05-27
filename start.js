@@ -14,11 +14,19 @@ if (!fs.existsSync(uploadsDir)) {
   console.log("Created uploads directory");
 }
 
-console.log("Starting MongoDB connection...");
-console.log("Starting server on port 5000...");
-const server = exec("node server/index.js");
+// Check if we're in a Vercel environment
+const isVercel = process.env.VERCEL || process.env.NOW_REGION;
 
-server.stdout.on("data", (data) => {
+if (isVercel) {
+  // In Vercel, we don't need to start the server here as Vercel will do that
+  console.log("Running in Vercel environment");
+} else {
+  // For local development, start the server
+  console.log(`Starting MongoDB connection...`);
+  console.log(`Starting server on port ${process.env.PORT || 5000}...`);
+  const server = exec("node server/index.js");
+
+  server.stdout.on("data", (data) => {
   console.log(`SERVER: ${data}`);
 
   // Once server is running, start the client
